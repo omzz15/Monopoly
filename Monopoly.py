@@ -10,8 +10,8 @@ import Monopoly_Data as MD
 
 
 board = MD.Board()
-player1 = MD.Player("P1", board)
-player2 = MD.Player("P2", board)
+player1 = MD.Player("P1", 1500, board)
+player2 = MD.Player("P2", 1500, board)
 
 colors = []
 for i in range(10):

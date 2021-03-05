@@ -8,15 +8,18 @@ import enum
 
 
 class Player:
-    def __init__(self, name, board):
+    def __init__(self, name, cash, board):
         self.name = name
+        self.cash = cash
         self.board = board
         self.tiles = []
         self.color_set_size = {}
         
     def add_tile(self, tile):
         self.tiles.append(tile)
+        tile.tile_owner = self
         self.add_to_color_set_size(tile.color)
+
         
     def add_to_color_set_size(self, color):
         try:
@@ -60,33 +63,24 @@ class Board:
 
 
 class Tile:
-    def __init__(self, name, tile_type, rent, tile_pos, tile_img, color, tile_size):
-        self.name = name
+    def __init__(self, tile_name, tile_type, price_data, tile_position, tile_image, tile_color, tile_size, tile_owner = None, tile_morgaged = False):
+        self.tile_name = tile_name
         self.tile_type = tile_type
-        self.tile_pos = tile_pos
-        self.rent = rent
-        self.tile_img = tile_img
-        self.color = color
+        self.tile_position = tile_position
+        self.price_data = price_data
+        self.tile_image = tile_image
+        self.tile_color = tile_color
         self.tile_size = tile_size
+        self.tile_owner = tile_owner
+        self.tile_morgaged = tile_morgaged
       
+    def morgage_tile(self):
+        if self.tile_owner != None and not self.tile_morgaged:
+            self.tile_owner.cash += self.price_data.tile_morgage_price
+            self.tile_morgaged = True
+
     #def get_rent(self, player = "", roll = 0):
-       # if(roll == 0): 
-
-class Rent:
-    def __init__(self, rent_price, house_price, hotel_price, cur_houses = 0, player_discounts = {}):
-        self.rent_price = rent_price
-        self.player_discounts = player_discounts.copy()
-        self.house_price = house_price
-        self.hotel_price = hotel_price
-        self.cur_houses = cur_houses 
-
-    def add_player_discount(self, player, discount):
-        try: self.player_discounts[player] += discount
-        except: self.player_discounts[player] = discount
-
-    def get_player_discount(self, player):
-        try: return self.player_discounts[player]
-        except: return 0
+        #if(roll == 0): 
 
 
 class TileType(enum.Enum):
@@ -100,6 +94,45 @@ class TileType(enum.Enum):
     JAIL = 7
 
 
+class PriceData:
+    def __init__(self, tile_price, tile_morgage_price, rent_prices, house_price, hotel_price, rent_type, max_houses = 5, cur_houses = 0, player_discounts = {}):
+        self.tile_price = tile_price
+        self.tile_morgage_price = tile_morgage_price
+        self.rent_prices = rent_prices
+        self.player_discounts = player_discounts.copy()
+        self.house_price = house_price
+        self.hotel_price = hotel_price
+        self.cur_houses = cur_houses 
+        self.max_houses = max_houses
+        self.rent_type = rent_type
+
+    def add_player_discount(self, player, discount):
+        try: self.player_discounts[player] += discount
+        except: self.player_discounts[player] = discount
+
+    def get_player_discount(self, player):
+        try: return self.player_discounts[player]
+        except: return 0
+    
+    def apply_player_discount(self, player, price):
+        return price * (1 - self.get_player_discount(player)/100)
+
+    #def get_current_price():
+        
+
+    def get_rent(self, player = "", roll = 0):
+        if(self.rent_type == RentType.ROLL):
+            return self.apply_player_discount("", 0)
+    
+    #def validate_price_data(self):
+        #return True
+
+
+class RentType(enum.Enum):
+    ROLL = 0,
+    CARDS = 1,
+    HOUSES = 2,
+    NONE = 3
     
 class Color:
     def __init__(self, RGB = (0,0,0)):
